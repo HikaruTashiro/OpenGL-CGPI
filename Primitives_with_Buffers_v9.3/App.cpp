@@ -34,7 +34,6 @@ void display(LList<Primitive*> &Lprimitives);
 void displayTemp(LList<Point*> &Ltemp);
 inline int buttonsImGui(int mode);
 void pushPolygon(LList<Primitive*> &Lprimitives,LList<Point*> &Ltemp,int mode);
-void savePrimitives(LList<Primitive*> &Lprimitives,const char* fileName);
 Node<Primitive*>* selectPrimitives(LList<Primitive*> &Lprimitives,ImVec2 &mouse_clicked);
 void clearTemp(LList<Point*> &Ltemp, bool destroy);
 void serializeButton(LList<Primitive*> &Lprimitives, std::string &fileName);
@@ -396,33 +395,6 @@ void pushPolygon(LList<Primitive*> &Lprimitives, LList<Point*> &Ltemp, int mode)
     }
 }
 
-void savePrimitives(LList<Primitive*> &Lprimitives, const char* fileName)
-{
-    Node<Primitive*>* node_aux = Lprimitives.getStart();
-
-    while(node_aux != nullptr)
-    {
-        switch (node_aux->value->getType())
-        {
-            case POINT:
-                break;
-            case CIRCLE:
-                break;
-            case LINE:
-                break;
-            case TRIANGLE:
-                break;
-            case RECTANGLE:
-                break;
-            case POLYGON:
-                break;
-            case PLINE:
-                break;
-        } 
-        node_aux = node_aux->next;
-    }
-}
-
 Node<Primitive*>* selectPrimitives(LList<Primitive*> &Lprimitives,ImVec2 &mouse_clicked)
 {
     Point*P; Circle*C; Line*L;
@@ -528,58 +500,30 @@ void serializeButton(LList<Primitive*> &Lprimitives, std::string &fileName)
             switch (node_aux->value->getType())
             {
                 case POINT:
-                    {
-                        std::cout<<"Point\n";
-                        Point* P = dynamic_cast<Point*>(node_aux->value);
-                        obj["figura"]["ponto"] << *P;
-                    }
+                    obj["figura"]["ponto"] << *dynamic_cast<Point*>(node_aux->value);
                     break;
                 case CIRCLE:
-                    {
-                        std::cout<<"Circle\n";
-                        Circle* C = dynamic_cast<Circle*>(node_aux->value);
-                        obj["figura"]["circulo"] << *C;
-                    }
+                    obj["figura"]["circulo"] << *dynamic_cast<Circle*>(node_aux->value);
                     break;
                 case LINE:
-                    {
-                        std::cout<<"Line\n";
-                        Line* L = dynamic_cast<Line*>(node_aux->value);
-                        obj["figura"]["linha"] << *L;
-                    }
+                    obj["figura"]["linha"] << *dynamic_cast<Line*>(node_aux->value);
                     break;
                 case RECTANGLE:
-                    {
-                        std::cout<<"Rectangle\n";
-                        Rectangle *R = dynamic_cast<Rectangle*>(node_aux->value);
-                        obj["figura"]["retangulo"] << *R;
-                    }
+                    obj["figura"]["retangulo"] << *dynamic_cast<Rectangle*>(node_aux->value);
                     break;
                 case TRIANGLE:
-                    {
-                        std::cout<<"Triangle\n";
-                        Triangle* T = dynamic_cast<Triangle*>(node_aux->value);
-                        obj["figura"]["triangulo"] << *T;
-                    }
+                    obj["figura"]["triangulo"] << *dynamic_cast<Triangle*>(node_aux->value);
                     break;
                 case PLINE:
-                    {
-                        std::cout<<"PolygonLine\n";
-                        PolygonLine* Pl = dynamic_cast<PolygonLine*>(node_aux->value);
-                        obj["figura"]["linha poligonal"] << *Pl;
-                    }
+                    obj["figura"]["linha poligonal"] << *dynamic_cast<PolygonLine*>(node_aux->value);
                     break;
                 case POLYGON:
-                    {
-                        std::cout<<"Polygon\n";
-                        Polygon* Pg = dynamic_cast<Polygon*>(node_aux->value);
-                        obj["figura"]["poligono"] << *Pg;
-                    }
+                    obj["figura"]["poligono"] << *dynamic_cast<Polygon*>(node_aux->value);
                     break;
             }
             node_aux = node_aux->next;
         }
-        file << obj.dump(1,'\t');
+        file << obj.dump(1);
         file.close();
     }
 }

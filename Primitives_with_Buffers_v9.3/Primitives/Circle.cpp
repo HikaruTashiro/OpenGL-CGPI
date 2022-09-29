@@ -20,7 +20,6 @@ class Circle : public Primitive
 
     private:
         GLFWwindow *window;
-        float width, height;
 };
 
 Circle :: Circle()
@@ -124,9 +123,9 @@ bool Circle :: belongs(float x, float y)
 ordered_json &operator << (ordered_json &jprimitive, Circle &C)
 {
     ordered_json obj;
-	obj["ponto"]["x"] = C.P_circle->x / static_cast<float>(C.width);
-	obj["ponto"]["y"] = C.P_circle->y / static_cast<float>(C.height);
-    obj["raio"] = static_cast<float>(C.Radius);
+	obj["ponto"]["x"] = C.P_circle->x / static_cast<float>(C.P_circle->width);
+	obj["ponto"]["y"] = C.P_circle->y / static_cast<float>(C.P_circle->height);
+    obj["raio"] = C.Radius / static_cast<float>(C.P_circle->width);
 	obj["cor"]["r"] = static_cast<int>(C.P_circle->R * 250.0f);
 	obj["cor"]["g"] = static_cast<int>(C.P_circle->G * 250.0f);
 	obj["cor"]["b"] = static_cast<int>(C.P_circle->B * 250.0f);

@@ -76,8 +76,8 @@ Point::~Point()
 void Point :: draw()
 {
 	GLfloat *vPositions = new GLfloat[2];
-	vPositions[0] = x/(GLfloat)width;
-	vPositions[1] = y/(GLfloat)height;
+	vPositions[0] = x / static_cast<GLfloat>(width);
+	vPositions[1] = y / static_cast<GLfloat>(height);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) << 1, vPositions, GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,0);
