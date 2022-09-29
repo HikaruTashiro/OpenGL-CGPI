@@ -30,13 +30,13 @@
 #include <iostream>
 #include <string>
 
-void display(LList<Primitive*> &Lprimitives);
-void displayTemp(LList<Point*> &Ltemp);
+inline void display(LList<Primitive*> &Lprimitives);
+inline void displayTemp(LList<Point*> &Ltemp);
 inline int buttonsImGui(int mode);
+void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName);
 void pushPolygon(LList<Primitive*> &Lprimitives,LList<Point*> &Ltemp,int mode);
 Node<Primitive*>* selectPrimitives(LList<Primitive*> &Lprimitives,ImVec2 &mouse_clicked);
 void clearTemp(LList<Point*> &Ltemp, bool destroy);
-void serializeButton(LList<Primitive*> &Lprimitives, std::string &fileName);
 
 /*
 *	  The main function will initiate the GLEW and GLFW libraries, also will
@@ -110,11 +110,40 @@ int main(void)
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(0.0f,0.0f,0.0f,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        /*Toolbar for chosing the primitive types*/
+        {
+            ImGui::Begin("Toolbar",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                /*Change in state machine*/
+                {
+                    static char file_name[31] = "\0";
+                    int mode_aux = mode;
+                    mode = buttonsImGui(mode);
+                    serializeButton(List_Primitives, file_name);
+                    ImGui::SameLine();
+                    ImGui::InputText("File Name: ", file_name, 30);
+                    if(mode_aux != mode)    //if there are changes in states the following change as well
+                    {
+                        pushPolygon(List_Primitives, List_temporary, mode_aux);
+                        clearTemp(List_temporary, count < 3);   //if count < 3 is true then delete else dont (since it was added to the List_Primitives)
+                        select_window = false;
+                        count = 0;
+                    }
+                }
+            ImGui::TextColored(ImVec4(0.819f,0.0745f,0.0745f,1.0f),Mode_str[mode]);            
+            if(mode == CIRCLE)
+                ImGui::SliderInt("Radius Size", &radius , 50, 300);
+            ImGui::SliderFloat("Pixel Size", &size , 1.0, 2.0);
+            ImGui::ColorEdit3("Primitive Color",(float *)&point_color); // Edit 3 floats representing a color
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+        }
 
         /*Mouse Event Handler*/
         if(ImGui::IsMouseClicked(0))    //Waits for Left Click
@@ -183,35 +212,6 @@ int main(void)
             }
         }
 
-        
-
-        /*Toolbar for chosing the primitive types*/
-        {
-            ImGui::Begin("Toolbar",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-                /*Change in state machine*/
-                {
-                    int mode_aux = mode;
-                    mode = buttonsImGui(mode);
-                    std::string jason = "Data.json";
-                    serializeButton(List_Primitives, jason);
-                    if(mode_aux != mode)    //if there are changes in states the following change as well
-                    {
-                        pushPolygon(List_Primitives, List_temporary, mode_aux);
-                        clearTemp(List_temporary, count < 3);   //if count < 3 is true then delete else dont (since it was added to the List_Primitives)
-                        select_window = false;
-                        count = 0;
-                    }
-                }
-            ImGui::TextColored(ImVec4(0.819f,0.0745f,0.0745f,1.0f),Mode_str[mode]);            
-            if(mode == CIRCLE)
-                ImGui::SliderInt("Radius Size", &radius , 50, 300);
-            ImGui::SliderFloat("Pixel Size", &size , 1.0, 2.0);
-            ImGui::ColorEdit3("Primitive Color",(float *)&point_color); // Edit 3 floats representing a color
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
-
         /*Select Primitives Window*/
         if(select_window && node_selected != nullptr)
         {
@@ -259,7 +259,7 @@ int main(void)
 *   - Description: sets the color of the Background of the windown and 
 *               displays the primitives inside the function.
 */
-void display(LList<Primitive*> &Lprimitives)
+inline void display(LList<Primitive*> &Lprimitives)
 {
     Point*P; Circle*C; Line*L;
     Rectangle* R; Triangle*T;
@@ -273,8 +273,8 @@ void display(LList<Primitive*> &Lprimitives)
         {
             case POINT:
                 P = dynamic_cast<Point*>(node->value);
-                P->setColor();
-                P->setSize();
+                //P->setColor();
+                //P->setSize();
                 P->draw();
                 break;
             case CIRCLE:
@@ -308,7 +308,7 @@ void display(LList<Primitive*> &Lprimitives)
     }
 }
 
-void displayTemp(LList<Point*> &Ltemp)
+inline void displayTemp(LList<Point*> &Ltemp)
 {
     if(Ltemp.getSize() >= 2)
     {
@@ -482,9 +482,9 @@ void clearTemp(LList<Point*> &Ltemp, bool destroy)
     }
 }
 
-void serializeButton(LList<Primitive*> &Lprimitives, std::string &fileName)
+void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName)
 {
-    if(ImGui::Button("Serialize to Json"))
+    if(ImGui::Button("Serialize to Json") && fileName[0] != '\0')
     {
         std :: ofstream file(fileName);
         ordered_json obj;
