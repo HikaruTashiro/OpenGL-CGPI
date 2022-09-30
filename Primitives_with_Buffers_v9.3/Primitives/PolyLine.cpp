@@ -1,9 +1,11 @@
 #include "../Utils.cpp"
+#include "./Line.cpp"
 #include "Line.cpp"
 #include "Point.cpp"
 #include "Primitive.hpp"
 #include <cstdlib>
 #include <new>
+#include <utility>
 #include <vector>
 #pragma once
 
@@ -18,6 +20,8 @@ public:
   void translate(float x, float y) override;
   bool belongs(float x, float y) override;
   void scale(float r) override;
+  void rotateItself(float deg) override;
+  std::pair<float, float> getMidPoint();
 
   friend ordered_json &operator<<(ordered_json &jprimitive, PolygonLine &Pl);
 };
@@ -74,6 +78,58 @@ void PolygonLine::scale(float r) {
   for (Line *l : this->lines) {
     l->scale(r);
   }
+}
+
+std::pair<float, float> PolygonLine::getMidPoint() {
+  float midX = 0.0f;
+  float midY = 0.0f;
+  float count = 0.0f;
+  for (int i = 0; i < this->lines.size(); i++) {
+    // if (i == this->lines.size() - 1) {
+    //  midX += this->lines[i]->P2->x;
+    //  midY += this->lines[i]->P2->y;
+    //} else {
+    //  midX += this->lines[i]->P1->x;
+    //  midY += this->lines[i]->P1->y;
+    //  midX += this->lines[i]->P2->x;
+    //  midY += this->lines[i]->P2->y;
+    //}
+    std::pair<float, float> temp = this->lines[i]->getMidPoint();
+    midX += temp.first;
+    midY += temp.second;
+
+    count += 2.0f;
+  }
+  return std::make_pair(midX / (count), midY / (count));
+}
+
+void PolygonLine::rotateItself(float deg) {
+  std::pair<float, float> midPoint = this->getMidPoint();
+  std::pair<float, float> tempLineP1, tempLineP2;
+  for (int i = 0; i < this->lines.size(); i++) {
+    tempLineP1 = rotateAround(
+        deg, std::make_pair(this->lines[i]->P1->x, this->lines[i]->P1->y),
+        midPoint);
+    this->lines[i]->P1->x = tempLineP1.first;
+    this->lines[i]->P1->y = tempLineP1.second;
+    if (i == this->lines.size() - 1) {
+      tempLineP1 = rotateAround(
+          deg, std::make_pair(this->lines[i]->P2->x, this->lines[i]->P2->y),
+          midPoint);
+      this->lines[i]->P2->x = tempLineP1.first;
+      this->lines[i]->P2->y = tempLineP1.second;
+    }
+    // this->lines[i]->newPoints(tempLineP1, tempLineP2);
+  }
+
+  //  int size = this->lines.size() - 1;
+  //  tempLineP1 = rotateAround(
+  //      deg, std::make_pair(this->lines[size]->P1->x,
+  //      this->lines[size]->P1->y), midPoint);
+  //  this->lines[size]->P1->x = tempLineP1.first;
+  //  this->lines[size]->P1->y = tempLineP1.second;
+  // Point *last_p = this->lines[this->lines.size() - 1]->P2;
+  // Point *first_p = this->lines[0]->P1;
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, PolygonLine &Pl) {

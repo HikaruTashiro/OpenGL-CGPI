@@ -17,6 +17,7 @@ public:
   bool belongs(float x, float y) override;
   void translate(float x, float y) override;
   void scale(float r) override;
+  void rotateItself(float deg) override;
   friend ordered_json &operator<<(ordered_json &jprimitive, Circle &C);
 
 private:
@@ -108,6 +109,10 @@ bool Circle ::belongs(float x, float y) {
     belongs = true;
 
   return belongs;
+}
+
+void Circle::rotateItself(float deg) {
+  std::cout << "GO AWAY PLS" << std::endl;
 }
 
 void Circle::translate(float x, float y) {

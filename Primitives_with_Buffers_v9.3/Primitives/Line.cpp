@@ -6,7 +6,9 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <math.h>
 #include <string>
+#include <utility>
 
 #pragma once
 
@@ -23,6 +25,16 @@ public:
   void draw(void) override;
   void translate(float x, float y) override;
   void scale(float r) override;
+  void newPoints(std::pair<float, float> P1, std::pair<float, float> P2) {
+    this->P1->x = P1.first;
+    this->P1->y = P1.second;
+    this->P2->x = P2.first;
+    this->P2->y = P2.second;
+  }
+  void rotateItself(float rad) override;
+  std::pair<float, float> getMidPoint();
+  // std::pair<float, float> rotateAround(float rad, std::pair<float, float> p,
+  //                                     std::pair<float, float> q);
   friend ordered_json &operator<<(ordered_json &jprimitive, Line &L);
 };
 
@@ -162,6 +174,34 @@ void Line::scale(float r) {
   this->P1->y *= r;
   this->P2->x *= r;
   this->P2->y *= r;
+}
+
+std::pair<float, float> Line::getMidPoint() {
+  float midX = (this->P1->x + this->P2->x) / 2.0;
+  float midY = (this->P1->y + this->P2->y) / 2.0;
+  return std::make_pair(midX, midY);
+}
+
+std::pair<float, float> rotateAround(float deg, std::pair<float, float> p,
+                                     std::pair<float, float> q) {
+  float rad = deg * (M_PI / 180.0f);
+  float newX = p.first * std::cos(rad) + (-1.0f * p.second * std::sin(rad)) +
+               q.first * (1.0f - std::cos(rad)) + q.second * std::sin(rad);
+  float newY = p.first * std::sin(rad) + p.second * std::cos(rad) +
+               q.second * (1.0f - std::cos(rad)) - q.first * std::sin(rad);
+  return std::make_pair(newX, newY);
+}
+
+void Line::rotateItself(float rad) {
+  std::pair<float, float> pP1, pP2;
+  pP1 = rotateAround(rad, std::make_pair(this->P1->x, this->P1->y),
+                     getMidPoint());
+  pP2 = rotateAround(rad, std::make_pair(this->P2->x, this->P2->y),
+                     getMidPoint());
+  this->P1->x = pP1.first;
+  this->P1->y = pP1.second;
+  this->P2->x = pP2.first;
+  this->P2->y = pP2.second;
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, Line &L) {

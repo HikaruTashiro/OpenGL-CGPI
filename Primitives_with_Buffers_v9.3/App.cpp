@@ -30,6 +30,7 @@
 #include <ios>
 #include <iostream>
 #include <string>
+#include <utility>
 
 inline void display(LList<Primitive *> &Lprimitives);
 inline void displayTemp(LList<Point *> &Ltemp);
@@ -42,13 +43,16 @@ Node<Primitive *> *selectPrimitives(LList<Primitive *> &Lprimitives,
 void clearTemp(LList<Point *> &Ltemp, bool destroy);
 
 void processTranslationRequest(Primitive *temp_p);
+void processScaleRequest(Primitive *temp_p);
+void processRotationRequest(Primitive *temp_p);
 
-enum Transformation { TRANSLATION, SCALE };
-Transformation selectedTrans = Transformation::TRANSLATION;
+enum Transformation { TRANSLATION, SCALE, ROTATE };
+Transformation selectedTrans = Transformation::ROTATE;
 // float *tempTrans = new float[2];
 float tempRScale = 0.0f;
 float tempXTrans = 0.0f;
 float tempYTrans = 0.0f;
+float tempDegRotation = 0.0f;
 bool applyTrans = false;
 
 /*
@@ -258,6 +262,14 @@ int main(void) {
         processTranslationRequest(temp_p);
       }
       case SCALE: {
+        std::cout << "SCALE"
+                  << "\n";
+        processScaleRequest(temp_p);
+      }
+      case ROTATE: {
+        std::cout << "ROTATE"
+                  << "\n";
+        processRotationRequest(temp_p);
       }
       }
     }
@@ -391,6 +403,8 @@ inline int buttonsImGui(int mode) {
                      -1 * ImGui::GetWindowHeight(), ImGui::GetWindowHeight());
 
   ImGui::SliderFloat("Scale R: ", &tempRScale, 0.0f, 5.0f);
+  ImGui::SliderFloat("Rotation Degrees", &tempDegRotation, 0.0f, 360.0f);
+
   if (ImGui::Button("Apply Trans")) {
     applyTrans = true;
   }
@@ -519,6 +533,58 @@ void processTranslationRequest(Primitive *temp_p) {
   case PLINE: {
     PolygonLine *pl = dynamic_cast<PolygonLine *>(temp_p);
     pl->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  }
+}
+
+void processRotationRequest(Primitive *temp_p) {
+  switch (temp_p->getType()) {
+  case LINE: {
+    Line *l = dynamic_cast<Line *>(temp_p);
+    std::pair<float, float> midPoint = l->getMidPoint();
+    l->rotateItself(tempDegRotation);
+    applyTrans = false;
+    break;
+  }
+  case POINT: {
+    std::cout << "TRY TO ROTATE A POINT AROUND ITSELF AND THEN COMEBACK PLEASE"
+              << std::endl;
+    // Point *p = dynamic_cast<Point *>(temp_p);
+    // p->translate(tempXTrans, tempYTrans);
+    // applyTrans = false;
+    // break;
+  }
+  case CIRCLE: {
+    std::cout << "TRY TO ROTATE A CIRCLE AROUND ITSELF AND THEN COMEBACK PLEASE"
+              << std::endl;
+    //    Circle *c = dynamic_cast<Circle *>(temp_p);
+    //    c->translate(tempXTrans, tempYTrans);
+    //    applyTrans = false;
+    //    break;
+  }
+  case POLYGON: {
+    Polygon *p = dynamic_cast<Polygon *>(temp_p);
+    p->rotateItself(tempDegRotation);
+    applyTrans = false;
+    break;
+  }
+  case TRIANGLE: {
+    Triangle *t = dynamic_cast<Triangle *>(temp_p);
+    t->rotateItself(tempDegRotation);
+    applyTrans = false;
+    break;
+  }
+  case RECTANGLE: {
+    Rectangle *r = dynamic_cast<Rectangle *>(temp_p);
+    r->rotateItself(tempDegRotation);
+    applyTrans = false;
+    break;
+  }
+  case PLINE: {
+    PolygonLine *pl = dynamic_cast<PolygonLine *>(temp_p);
+    pl->rotateItself(tempDegRotation);
     applyTrans = false;
     break;
   }

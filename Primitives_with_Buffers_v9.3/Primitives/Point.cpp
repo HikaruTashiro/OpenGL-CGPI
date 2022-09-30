@@ -24,6 +24,7 @@ public:
   bool belongs(float x, float y) override;
   void translate(float x, float y) override;
   void scale(float r) override;
+  void rotateItself(float deg) override;
   friend std ::ostream &operator<<(std ::ostream &file, Point &P);
   friend ordered_json &operator<<(ordered_json &jprimitive, Point &P);
   inline GLFWwindow *getWindow() { return current_window; };
@@ -101,6 +102,10 @@ void Point::translate(float x, float y) {
 void Point::scale(float r) {
   this->x *= x;
   this->y *= y;
+}
+
+void Point::rotateItself(float deg) {
+  std::cout << "ROTATING POINT COOL" << std::endl;
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, Point &P) {
