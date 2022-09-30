@@ -22,6 +22,7 @@ public:
   bool belongs(float x, float y) override;
   void draw(void) override;
   void translate(float x, float y) override;
+  void scale(float r) override;
   friend ordered_json &operator<<(ordered_json &jprimitive, Line &L);
 };
 
@@ -154,6 +155,13 @@ void Line::translate(float x, float y) {
   this->P2->x += x;
   this->P1->y += y;
   this->P2->y += y;
+}
+
+void Line::scale(float r) {
+  this->P1->x *= r;
+  this->P1->y *= r;
+  this->P2->x *= r;
+  this->P2->y *= r;
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, Line &L) {

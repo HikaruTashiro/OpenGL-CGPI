@@ -17,6 +17,8 @@ public:
   void draw() override;
   void translate(float x, float y) override;
   bool belongs(float x, float y) override;
+  void scale(float r) override;
+
   friend ordered_json &operator<<(ordered_json &jprimitive, PolygonLine &Pl);
 };
 
@@ -65,6 +67,12 @@ bool PolygonLine ::belongs(float x, float y) {
 void PolygonLine::translate(float x, float y) {
   for (Line *l : this->lines) {
     l->translate(x, y);
+  }
+}
+
+void PolygonLine::scale(float r) {
+  for (Line *l : this->lines) {
+    l->scale(r);
   }
 }
 

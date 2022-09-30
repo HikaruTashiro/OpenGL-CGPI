@@ -14,6 +14,7 @@ public:
   void draw(void) override;
   bool belongs(float x, float y) override;
   void translate(float x, float y) override;
+  void scale(float r) override;
   friend ordered_json &operator<<(ordered_json &jprimitive, Triangle &T);
 };
 
@@ -60,6 +61,12 @@ void Triangle::translate(float x, float y) {
   L1->translate(x, y);
   L2->translate(x, y);
   L3->translate(x, y);
+}
+
+void Triangle::scale(float r) {
+  L1->scale(r);
+  L2->scale(r);
+  L3->scale(r);
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, Triangle &T) {

@@ -23,6 +23,7 @@ public:
   void draw(void) override;
   bool belongs(float x, float y) override;
   void translate(float x, float y) override;
+  void scale(float r) override;
   friend std ::ostream &operator<<(std ::ostream &file, Point &P);
   friend ordered_json &operator<<(ordered_json &jprimitive, Point &P);
   inline GLFWwindow *getWindow() { return current_window; };
@@ -94,9 +95,12 @@ inline void Point ::setSize() { glPointSize(PointSize); }
 
 void Point::translate(float x, float y) {
   this->x += x;
-  this->x += x;
   this->y += y;
-  this->y += y;
+}
+
+void Point::scale(float r) {
+  this->x *= x;
+  this->y *= y;
 }
 
 ordered_json &operator<<(ordered_json &jprimitive, Point &P) {

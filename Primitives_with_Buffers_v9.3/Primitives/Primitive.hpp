@@ -16,7 +16,7 @@ public:
   int getType() { return type; }
   virtual ~Primitive() = default;
   virtual void translate(float x, float y) = 0;
-  virtual void scale(float x, float y) = 0;
+  virtual void scale(float r) = 0;
 };
 
 #endif

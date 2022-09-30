@@ -16,6 +16,7 @@ public:
   void draw() override;
   bool belongs(float x, float y) override;
   void translate(float x, float y) override;
+  void scale(float r) override;
   friend ordered_json &operator<<(ordered_json &jprimitive, Circle &C);
 
 private:
@@ -113,6 +114,8 @@ void Circle::translate(float x, float y) {
   this->P_circle->x = x;
   this->P_circle->y = y;
 }
+
+void Circle::scale(float r) { this->Radius *= r; }
 
 ordered_json &operator<<(ordered_json &jprimitive, Circle &C) {
   ordered_json obj;

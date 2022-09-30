@@ -41,17 +41,20 @@ Node<Primitive *> *selectPrimitives(LList<Primitive *> &Lprimitives,
                                     ImVec2 &mouse_clicked);
 void clearTemp(LList<Point *> &Ltemp, bool destroy);
 
-// enum Transformation { TRANSLATION };
-// Transformation selectedTrans = Transformation::TRANSLATION;
+void processTranslationRequest(Primitive *temp_p);
+
+enum Transformation { TRANSLATION, SCALE };
+Transformation selectedTrans = Transformation::TRANSLATION;
 // float *tempTrans = new float[2];
+float tempRScale = 0.0f;
 float tempXTrans = 0.0f;
 float tempYTrans = 0.0f;
 bool applyTrans = false;
 
 /*
  *	  The main function will initiate the GLEW and GLFW libraries, also will
- *   create the window that will be displayed to the user, the main loop for the
- *   window is in the while that keeps executing the display function.
+ *   create the window that will be displayed to the user, the main loop for
+ *the window is in the while that keeps executing the display function.
  */
 int main(void) {
   /*Initializes GLFW Library*/
@@ -62,7 +65,8 @@ int main(void) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only
+  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+
+  // only
 
   GLFWwindow *window = glfwCreateWindow(1920, 1080, "Primitives", NULL, NULL);
   if (window == NULL) {
@@ -100,8 +104,8 @@ int main(void) {
   ImVec4 point_color = ImVec4(1.00f, 0.647f, 0.0f, 1.00f);
   ImVec2 mouse_pos; // Vector that will receive the mouse position on screen
   ImVec2 wselected_location(1920.0f, 0.0f);
-  LList<Point *>
-      List_temporary; // A temporary storage for Points when building Primitives
+  LList<Point *> List_temporary;      // A temporary storage for Points when
+                                      // building Primitives
   LList<Primitive *> List_Primitives; // Storage for Primitives
   float size = 1;
   int mode = POINT;
@@ -138,8 +142,8 @@ int main(void) {
         serializeButton(List_Primitives, file_name);
         ImGui::SameLine();
         ImGui::InputText("File Name: ", file_name, 30);
-        if (mode_aux !=
-            mode) // if there are changes in states the following change as well
+        if (mode_aux != mode) // if there are changes in states the following
+                              // change as well
         {
           pushPolygon(List_Primitives, List_temporary, mode_aux);
           clearTemp(List_temporary,
@@ -210,8 +214,9 @@ int main(void) {
             Node<Point *> *node1 = List_temporary.getEnd();
             Node<Point *> *node2 = node1->prev;
             List_Primitives.add(new Triangle(*node2->value, *node1->value, *P));
-            clearTemp(List_temporary, false); // the false is to specify that
-                                              // the points will not be deleted
+            clearTemp(List_temporary,
+                      false); // the false is to specify that
+                              // the points will not be deleted
             count = 0;
           }
           break;
@@ -246,48 +251,13 @@ int main(void) {
     // TRANSFORMATIONS
     if (node_selected != nullptr && applyTrans) {
       Primitive *temp_p = node_selected->value;
-      switch (temp_p->getType()) {
-      case LINE: {
-        Line *l = dynamic_cast<Line *>(temp_p);
-        l->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
+      switch (selectedTrans) {
+      case TRANSLATION: {
+        std::cout << "TRANSLATION"
+                  << "\n";
+        processTranslationRequest(temp_p);
       }
-      case POINT: {
-        Point *p = dynamic_cast<Point *>(temp_p);
-        p->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
-      }
-      case CIRCLE: {
-        Circle *c = dynamic_cast<Circle *>(temp_p);
-        c->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
-      }
-      case POLYGON: {
-        Polygon *p = dynamic_cast<Polygon *>(temp_p);
-        p->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
-      }
-      case TRIANGLE: {
-        Triangle *t = dynamic_cast<Triangle *>(temp_p);
-        t->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
-      }
-      case RECTANGLE: {
-        Rectangle *r = dynamic_cast<Rectangle *>(temp_p);
-        r->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
-      }
-      case PLINE: {
-        PolygonLine *pl = dynamic_cast<PolygonLine *>(temp_p);
-        pl->translate(tempXTrans, tempYTrans);
-        applyTrans = false;
-        break;
+      case SCALE: {
       }
       }
     }
@@ -419,6 +389,8 @@ inline int buttonsImGui(int mode) {
                      -1 * ImGui::GetWindowWidth(), ImGui::GetWindowWidth());
   ImGui::SliderFloat("Transformation Y: ", &tempYTrans,
                      -1 * ImGui::GetWindowHeight(), ImGui::GetWindowHeight());
+
+  ImGui::SliderFloat("Scale R: ", &tempRScale, 0.0f, 5.0f);
   if (ImGui::Button("Apply Trans")) {
     applyTrans = true;
   }
@@ -456,6 +428,100 @@ void pushPolygon(LList<Primitive *> &Lprimitives, LList<Point *> &Ltemp,
       }
       Lprimitives.add(Pl);
     }
+  }
+}
+
+void processScaleRequest(Primitive *temp_p) {
+  switch (temp_p->getType()) {
+  case LINE: {
+    Line *l = dynamic_cast<Line *>(temp_p);
+    l->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case POINT: {
+    Point *p = dynamic_cast<Point *>(temp_p);
+    p->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case CIRCLE: {
+    Circle *c = dynamic_cast<Circle *>(temp_p);
+    c->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case POLYGON: {
+    Polygon *p = dynamic_cast<Polygon *>(temp_p);
+    p->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case TRIANGLE: {
+    Triangle *t = dynamic_cast<Triangle *>(temp_p);
+    t->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case RECTANGLE: {
+    Rectangle *r = dynamic_cast<Rectangle *>(temp_p);
+    r->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  case PLINE: {
+    PolygonLine *pl = dynamic_cast<PolygonLine *>(temp_p);
+    pl->scale(tempRScale);
+    applyTrans = false;
+    break;
+  }
+  }
+}
+
+void processTranslationRequest(Primitive *temp_p) {
+  switch (temp_p->getType()) {
+  case LINE: {
+    Line *l = dynamic_cast<Line *>(temp_p);
+    l->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case POINT: {
+    Point *p = dynamic_cast<Point *>(temp_p);
+    p->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case CIRCLE: {
+    Circle *c = dynamic_cast<Circle *>(temp_p);
+    c->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case POLYGON: {
+    Polygon *p = dynamic_cast<Polygon *>(temp_p);
+    p->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case TRIANGLE: {
+    Triangle *t = dynamic_cast<Triangle *>(temp_p);
+    t->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case RECTANGLE: {
+    Rectangle *r = dynamic_cast<Rectangle *>(temp_p);
+    r->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
+  case PLINE: {
+    PolygonLine *pl = dynamic_cast<PolygonLine *>(temp_p);
+    pl->translate(tempXTrans, tempYTrans);
+    applyTrans = false;
+    break;
+  }
   }
 }
 
