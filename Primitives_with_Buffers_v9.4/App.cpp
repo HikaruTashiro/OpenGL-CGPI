@@ -2,8 +2,8 @@
 * @file App.cpp
 * @author Jonas Edward Tashiro, Rafael Melloni Chacon Arnon, Luan Lopes Barbosa de Almeida
 * @brief
-* @version 0.5
-* @date 2022-08-27
+* @version 9.4
+* @date 2022-10-02
 *
 * @copyright Copyright (c) 2022
 */
@@ -18,8 +18,8 @@
 #include "Primitives/Point.cpp"
 #include "Primitives/Polygon.cpp"
 #include "Primitives/PolyLine.cpp"
+#include "Primitives/Cube.cpp"
 #include "Data_Structures/LList.hpp"
-#include "Utils.cpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -27,6 +27,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
+#include <fstream>
 #include <ios>
 #include <iostream>
 #include <string>
@@ -34,10 +35,15 @@
 void display(LList<Primitive*> &Lprimitives);
 void displayTemp(LList<Point*> &Ltemp);
 int buttonsImGui(int mode);
-void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName);
 void pushPolygon(LList<Primitive*> &Lprimitives,LList<Point*> &Ltemp,int mode);
 Node<Primitive*>* selectPrimitives(LList<Primitive*> &Lprimitives,ImVec2 &mouse_clicked);
 void clearTemp(LList<Point*> &Ltemp, bool destroy);
+void clearPrimitive(LList<Primitive*> &Lprimitives);
+
+/*JSON*/
+void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName);
+void deserializationButton(LList<Primitive*> &Lprimitives, const char* fileName,GLFWwindow* window);
+Point* retrievePoint(nlohmann::basic_json<> &a,const char* mode, int display_w, int display_h, GLFWwindow* window);
 
 /*Transformation Requests*/
 void processTranslationRequest(Primitive* temp_p, float x, float y);
@@ -47,7 +53,8 @@ void processRotationRequest(Primitive* temp_p, float theta);
 /*
 *	  The main function will initiate the GLEW and GLFW libraries, also will
 *   create the window that will be displayed to the user, the main loop for the
-*   window is in the while that keeps executing the display function.
+*   window is in the while that keeps executing the display function and ImGui
+*   windows.
 */
 int main(void)
 {
@@ -111,8 +118,8 @@ int main(void)
     const char* Type_str[7] = {"Point","Circle","Line","Rectangle","Triangle","Polygon","Polygonal Line"};
     int display_w, display_h;
     bool transforms[3] = {false, false, false};
-    Line Vertical(*new Point(-960.0f,0.0f,window),*new Point(960.0f,0.0f,window)), 
-         Horizontal(*new Point(0.0f,-540.0f,window),*new Point(0.0f,540.0f,window));
+    Line Horizontal(*new Point(-960.0f,0.0f,window),*new Point(960.0f,0.0f,window)), 
+         Vertical(*new Point(0.0f,-540.0f,window),*new Point(0.0f,540.0f,window));
         
     while (!glfwWindowShouldClose(window))
     {
@@ -122,6 +129,10 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         /*Coordinate lines*/
+        Vertical.P1->y = -(display_h >> 1);
+        Vertical.P2->y = display_h >> 1;
+        Horizontal.P1->x = -(display_w >> 1);
+        Horizontal.P2->x = display_w >> 1;
         Vertical.draw();
         Horizontal.draw();
 
@@ -134,11 +145,16 @@ int main(void)
             ImGui::Begin("Toolbar",NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
                 /*Change in state machine*/
                 {
-                    static char file_name[20] = "\0";
+                    static char sfile_name[20] = "\0";
+                    static char lfile_name[20] = "\0";
                     int mode_aux = mode;
                     mode = buttonsImGui(mode);
-                    serializeButton(List_Primitives, file_name);
-                    ImGui::InputText("File Name", file_name, 15);
+                    serializeButton(List_Primitives, sfile_name);
+                    ImGui::SameLine();
+                    ImGui::InputText("File Name to Save", sfile_name, 15);
+                    deserializationButton(List_Primitives, lfile_name,window);
+                    ImGui::SameLine();
+                    ImGui::InputText("File Name to Load", lfile_name, 15);
                     if(mode_aux != mode)    //if there are changes in states the following change as well
                     {
                         pushPolygon(List_Primitives, List_temporary, mode_aux);
@@ -286,6 +302,7 @@ int main(void)
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+    clearPrimitive(List_Primitives);
 
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -317,8 +334,8 @@ void display(LList<Primitive*> &Lprimitives)
         {
             case POINT:
                 P = dynamic_cast<Point*>(node->value);
-                //P->setColor();
-                //P->setSize();
+                P->setColor();
+                P->setSize();
                 P->draw();
                 break;
             case CIRCLE:
@@ -526,6 +543,12 @@ void clearTemp(LList<Point*> &Ltemp, bool destroy)
     }
 }
 
+void clearPrimitive(LList<Primitive*> &Lprimitives)
+{
+    while (Lprimitives.getSize() != 0)
+        delete Lprimitives.removeEnd();
+}
+
 void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName)
 {
     if(ImGui::Button("Save") && fileName[0] != '\0')
@@ -536,7 +559,7 @@ void serializeButton(LList<Primitive*> &Lprimitives, const char* fileName)
         ordered_json obj;
         if(!file)
         {
-            ImGui::TextColored(ImVec4(1.0f,0.25f,0.0f,1.0f), "Failed to Open File");
+            ImGui::TextColored(ImVec4(1.0f,0.25f,0.0f,1.0f), "Failed to Save File");
             return;
         }
 
@@ -659,4 +682,110 @@ void processRotationRequest(Primitive* temp_p, float theta)
             dynamic_cast<Polygon*>(temp_p)->rotate(theta);
             break;
     }
+}
+
+void deserializationButton(LList<Primitive*> &Lprimitives, const char* fileName, GLFWwindow* window)
+{
+    if(ImGui::Button("Load") && fileName[0] != '\0')
+    {
+        clearPrimitive(Lprimitives);
+        int display_w, display_h;
+        glfwGetWindowSize(window, &display_w, &display_h);
+        std::string name = fileName;
+        name.append(".json");
+        std::ifstream file(name);
+        if(!file)
+        {
+            ImGui::TextColored(ImVec4(1.0f,0.25f,0.0f,1.0f), "Failed to Open File");
+            return;
+        }
+        json obj = json::parse(file);
+
+        if (!obj["figura"]["ponto"].empty())
+            for (auto& a : obj["figura"]["ponto"])
+            {
+                Point* P = retrievePoint(a,"p",display_w,display_h,window);
+                Lprimitives.add(P);
+            }
+        if(!obj["figura"]["linha"].empty())
+            for (auto& a : obj["figura"]["linha"])
+            {
+                Point* P = retrievePoint(a,"p1",display_w,display_h,window);
+                Point* Q = retrievePoint(a,"p2",display_w,display_h,window);
+                Lprimitives.add(new Line(*P,*Q));
+            }
+        if(!obj["figura"]["triangulo"].empty())
+            for (auto& a : obj["figura"]["triangulo"])
+            {
+                Point* P = retrievePoint(a,"p1",display_w,display_h,window);
+                Point* Q = retrievePoint(a,"p2",display_w,display_h,window);
+                Point* R = retrievePoint(a,"p3",display_w,display_h,window);
+                Lprimitives.add(new Triangle(*P,*Q,*R));
+            }
+        if(!obj["figura"]["retangulo"].empty())
+            for (auto& a : obj["figura"]["retangulo"])
+            {
+                Point* P = retrievePoint(a,"p1",display_w,display_h,window);
+                Point* Q = retrievePoint(a,"p2",display_w,display_h,window);
+                Lprimitives.add(new Rectangle(*P,*Q));
+            }
+        if(!obj["figura"]["circulo"].empty())
+            for (auto& a : obj["figura"]["circulo"])
+            {
+                Point* P = retrievePoint(a,"ponto",display_w,display_h,window);
+                GLfloat radius = (display_w >> 1) * (GLfloat)a["raio"];
+                Lprimitives.add(new Circle(*P,radius,window));
+            }
+        if(!obj["figura"]["linha poligonal"].empty())
+            for (auto& a : obj["figura"]["linha poligonal"])
+            {
+                LList<Point*> Ltemp;
+                GLfloat x, y;
+                for (auto &p : a["ponto"])
+                {
+                    x = (display_w >> 1) * (GLfloat)p["x"];
+                    y = (display_h >> 1) * (GLfloat)p["y"];
+                    Point* P = new Point(x,y,window);
+                    P->R = (GLfloat)a["cor"]["r"] / 256.0f;
+                    P->G = (GLfloat)a["cor"]["g"] / 256.0f;
+                    P->B = (GLfloat)a["cor"]["b"] / 256.0f;
+                    Ltemp.add(P);                                    
+                }
+                pushPolygon(Lprimitives, Ltemp, PLINE);
+            }
+        if(!obj["figura"]["poligono"].empty())
+            for (auto& a : obj["figura"]["poligono"])
+            {
+                LList<Point*> Ltemp;
+                GLfloat x, y;
+                for (auto &p : a["ponto"])
+                {
+                    x = (display_w >> 1) * (GLfloat)p["x"];
+                    y = (display_h >> 1) * (GLfloat)p["y"];
+                    Point* P = new Point(x,y,window);
+                    P->R = (GLfloat)a["cor"]["r"] / 256.0f;
+                    P->G = (GLfloat)a["cor"]["g"] / 256.0f;
+                    P->B = (GLfloat)a["cor"]["b"] / 256.0f;
+                    Ltemp.add(P);                                    
+                }
+                pushPolygon(Lprimitives, Ltemp, POLYGON);
+            }
+
+        file.close();    
+    }
+}
+
+Point* retrievePoint(nlohmann::basic_json<> &a, const char* mode, int display_w, int display_h, GLFWwindow* window)
+{
+    GLfloat x, y;
+    x = (display_w >> 1) * (GLfloat)a[mode]["x"];
+    y = (display_h >> 1) * (GLfloat)a[mode]["y"];          
+    //std::cout<<'('<<x<<','<<y<<')'<<'\n';
+    Point* P = new Point(x,y,window);
+    P->R = (GLfloat)a["cor"]["r"] / 256.0f;
+    P->G = (GLfloat)a["cor"]["g"] / 256.0f;
+    P->B = (GLfloat)a["cor"]["b"] / 256.0f;
+    //std::cout<<'('<<P->R<<','<<P->G<<','<<P->B<<')'<<'\n';
+
+    return P;
 }

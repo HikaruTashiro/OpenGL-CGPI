@@ -1,5 +1,4 @@
 #include "Point.cpp"
-#include "../Utils.cpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
@@ -22,6 +21,7 @@ class Circle : public Primitive
         void scale(float k) override;
         void rotate(float theta) override;
 
+		/*JSON*/
         friend ordered_json &operator << (ordered_json &jprimitive, Circle &C);
 
     private:

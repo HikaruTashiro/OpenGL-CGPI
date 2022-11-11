@@ -1,5 +1,4 @@
 #include "Point.cpp"
-#include "../Utils.cpp"
 #include "Primitive.hpp"
 #include <GLFW/glfw3.h>
 #include <cmath>
@@ -28,6 +27,7 @@ class Line : public Primitive
         void scale(float k) override;
         void rotate(float rad) override;
 
+		/*JSON*/
 		friend ordered_json &operator<<(ordered_json &jprimitive,Line &L);
 };
 

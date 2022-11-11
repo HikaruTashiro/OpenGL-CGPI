@@ -3,8 +3,11 @@
  * */
 #ifndef _Primitive_hpp
 #define _Primitive_hpp
-#include <ostream>
-#include <string>
+#include "../json/json.hpp"
+
+using nlohmann::json;
+using nlohmann::ordered_json;
+typedef enum{POINT, CIRCLE, LINE, RECTANGLE, TRIANGLE, POLYGON, PLINE, SELECT, CUBE} Instruction;
 
 class Primitive
 {

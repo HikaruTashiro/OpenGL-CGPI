@@ -1,5 +1,4 @@
 #include "Line.cpp"
-#include "../Utils.cpp"
 #include "Point.cpp"
 #include "Primitive.hpp"
 #include <new>
@@ -21,6 +20,7 @@ class Rectangle : public Primitive
         void scale(float k) override;
         void rotate(float theta) override;
 
+		/*JSON*/
         friend ordered_json &operator << (ordered_json &jprimitive, Rectangle &R);
 };
 

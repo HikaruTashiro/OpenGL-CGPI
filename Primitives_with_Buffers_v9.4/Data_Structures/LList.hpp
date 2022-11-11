@@ -23,39 +23,46 @@ template<class Type> class LList
     void show(void);  //Only for Test
 };
 
-template<class Type> LList<Type> :: LList()
+template<class Type>
+LList<Type> :: LList()
 {
     start = end = nullptr;
     size = 0;
 }
 
-template<class Type> LList<Type> :: ~LList()
+template<class Type>
+LList<Type> :: ~LList()
 {
     while (size > 0)
         removeStart(); 
 }
 
-template<class Type> int LList<Type> :: getSize() 
+template<class Type>
+int LList<Type> :: getSize() 
 {
     return size;
 }
 
-template<class Type> Node<Type>* LList<Type> :: getStart()
+template<class Type>
+Node<Type>* LList<Type> :: getStart()
 {
     return start;
 }
 
-template<class Type> Node<Type>* LList<Type> :: getEnd()
+template<class Type>
+Node<Type>* LList<Type> :: getEnd()
 {
     return end;
 }
 
-template<class Type> Type LList<Type> :: getTop()
+template<class Type>
+Type LList<Type> :: getTop()
 {
     return end->value;
 }
 
-template<class Type> void LList<Type> :: add(Type item)
+template<class Type>
+void LList<Type> :: add(Type item)
 {
     Node<Type>* new_Node = new(std::nothrow) Node<Type>(item);
     if(new_Node != nullptr)
@@ -72,7 +79,8 @@ template<class Type> void LList<Type> :: add(Type item)
     }
 }
 
-template<class Type> Type LList<Type> :: removeStart()
+template<class Type>
+Type LList<Type> :: removeStart()
 {
       Node<Type>* aux = start; 
       Type value = (Type) 0;
@@ -90,7 +98,8 @@ template<class Type> Type LList<Type> :: removeStart()
       return value;
 }
 
-template<class Type> Type LList<Type> :: removeEnd()
+template<class Type>
+Type LList<Type> :: removeEnd()
 {
       Node<Type>* aux = end; 
       Type value = (Type) 0;
@@ -108,7 +117,8 @@ template<class Type> Type LList<Type> :: removeEnd()
       return value;
 }
 
-template<class Type> Type LList<Type> :: remove(Node<Type> *node_address)
+template<class Type>
+Type LList<Type> :: remove(Node<Type> *node_address)
 {
       Type value = (Type) 0;
       if(node_address != nullptr)    

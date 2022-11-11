@@ -5,7 +5,6 @@
 #include <ios>
 #include <iostream>
 #include <string>
-#include "../Utils.cpp"
 #include "../json/json.hpp"
 #include "Primitive.hpp"
 
@@ -14,10 +13,11 @@
 class Point : public Primitive
 {
 	public:
-		GLfloat x , y;
+		GLfloat x, y;
 		GLfloat PointSize;
 		GLfloat R,G,B;
 		GLint width,height;
+		GLFWwindow* current_window;
 		Point();
 		Point(GLint x, GLint y, GLFWwindow* window);
 		~Point();
@@ -28,6 +28,7 @@ class Point : public Primitive
 		inline void scale(float k) override;
 		inline void rotate(float theta) override;
 
+		/*JSON*/
 		friend std :: ostream &operator<<(std :: ostream &file, Point &P);
 		friend ordered_json &operator<<(ordered_json &jprimitive,Point &P);
 		inline GLFWwindow* getWindow(){return current_window;};
@@ -35,7 +36,6 @@ class Point : public Primitive
 		inline void setSize();
 
 	private:
-		GLFWwindow* current_window;
 		GLint FragmentShader;
 		GLuint VAO[1];
 		GLuint VBO[1];
@@ -56,7 +56,7 @@ Point :: Point(GLint x_axis, GLint y_axis, GLFWwindow* window)
 	current_window = window;
 	x = x_axis;
 	y = y_axis;
-	PointSize = 2;
+	PointSize = 1.0f;
 	R = G = B = 0.5f;
 	glfwGetWindowSize(window, &width, &height);
 	width >>= 1;
@@ -135,9 +135,9 @@ ordered_json &operator<<(ordered_json &jprimitive,Point &P)
 	ordered_json obj;
 	obj["p"]["x"] = P.x / static_cast<float>(P.width);
 	obj["p"]["y"] = P.y / static_cast<float>(P.height);
-	obj["cor"]["r"] = (int) (P.R * 250.0f);
-	obj["cor"]["g"] = (int) (P.G * 250.0f);
-	obj["cor"]["b"] = (int) (P.B * 250.0f);
+	obj["cor"]["r"] = (int) (P.R * 256.0f);
+	obj["cor"]["g"] = (int) (P.G * 256.0f);
+	obj["cor"]["b"] = (int) (P.B * 256.0f);
 	jprimitive.push_back(obj);
 
 	return jprimitive;

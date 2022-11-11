@@ -1,7 +1,7 @@
 #include "Line.cpp"
-#include "../Utils.cpp"
 #include "Point.cpp"
 #include "Primitive.hpp"
+#include "../Data_Structures/Node.cpp"
 #include <cstdlib>
 #include <new>
 #include <vector>
@@ -10,7 +10,7 @@
 class PolygonLine : public Primitive 
 {
     public:
-        std::vector<Line*> lines; //Dinamic Array of Points
+        std::vector<Line*> lines; //Dynamic Array of pointers to Lines
         PolygonLine();
         ~PolygonLine();
         void add(Point* P);
@@ -23,6 +23,7 @@ class PolygonLine : public Primitive
         void scale(float k) override;
         void rotate(float theta) override;
 
+		/*JSON*/
         friend ordered_json &operator << (ordered_json &jprimitive, PolygonLine &Pl);
 };
 
@@ -133,19 +134,33 @@ void PolygonLine :: rotate(float theta)
 ordered_json &operator << (ordered_json &jprimitive, PolygonLine &Pl)
 {
 	ordered_json obj, aux;
-    unsigned long i;
+    unsigned long i, size;
     float width, height;
+    Line* auxL;
     width  = static_cast<float>(Pl.lines[0]->P1->width);
     height = static_cast<float>(Pl.lines[0]->P1->height);
+    size = Pl.lines.size();
 
-    for (i = 0; i < Pl.lines.size(); i++)
+    if(Pl.getType() == POLYGON)
+    {
+        auxL = Pl.lines[size - 1];
+        Pl.lines.pop_back();
+    }
+
+    for (i = 0; i < size; i++)
     {
         aux["x"] = Pl.lines[i]->P1->x / width;
         aux["y"] = Pl.lines[i]->P1->y / height;
         obj["ponto"].push_back(aux); 
     }
-
     i--;
+    aux["x"] = Pl.lines[i]->P2->x / width;
+    aux["y"] = Pl.lines[i]->P2->y / height;
+    obj["ponto"].push_back(aux); 
+
+    if(Pl.getType() == POLYGON)
+        Pl.lines.push_back(auxL);
+
     obj["cor"]["r"] = static_cast<int>(Pl.lines[i]->P1->R * 250.0f);
     obj["cor"]["g"] = static_cast<int>(Pl.lines[i]->P1->G * 250.0f);
     obj["cor"]["b"] = static_cast<int>(Pl.lines[i]->P1->B * 250.0f);

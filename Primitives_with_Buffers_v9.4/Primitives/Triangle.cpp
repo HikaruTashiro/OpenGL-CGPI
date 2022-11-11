@@ -1,5 +1,4 @@
 #include "Line.cpp"
-#include "../Utils.cpp"
 #include "Primitive.hpp"
 #include <iostream>
 #include <new>
@@ -20,6 +19,7 @@ class Triangle : public Primitive
         void scale(float k) override;
         void rotate(float theta) override;
 
+		/*JSON*/
 		friend ordered_json &operator << (ordered_json &jprimitive, Triangle &T);
 };
 
