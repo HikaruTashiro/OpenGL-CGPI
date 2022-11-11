@@ -1,5 +1,6 @@
 #include "imgui/imgui.h"
 #include "inc/GL/glew.h"
+#include <climits>
 #include <iostream>
 #include <string>
 #define STB_IMAGE_IMPLEMENTATION
@@ -12,6 +13,10 @@ Image::Image(const char* filename)
 {
     image_data = stbi_load(filename, &width, &height, NULL, 4);  
     name = filename;
+    access_row = new int[height];
+    access_row[0] = 0;
+    for (int i = 1; i < height; i++)
+        access_row[i] = access_row[i - 1] + width * CHANNEL4;
     
     if(image_data == NULL)
     {
@@ -58,3 +63,19 @@ void Image::filterGreyScale()
     }
     this->loadTexture();    
 }
+
+void Image::filterBlackWhite()
+{
+
+}
+
+void Image::filterLowPass()
+{
+
+}
+
+void Image::filterHighPass()
+{
+
+}
+
