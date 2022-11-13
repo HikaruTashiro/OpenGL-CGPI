@@ -126,6 +126,14 @@ void displayFilters(Image *image, GLFWwindow *window, bool &filter_applied) {
     image->filterLowPass();
     filter_applied = true;
   }
+  if (ImGui::Button("HighPass")) {
+    image->filterHighPass();
+    filter_applied = true;
+  }
+  if (ImGui::Button("BlackWhite")) {
+    image->filterBlackWhite();
+    filter_applied = true;
+  }
   ImGui::End();
 }
 

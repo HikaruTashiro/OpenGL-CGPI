@@ -90,9 +90,59 @@ void Image::filterLowPass() {
       setBlueAtPixel(i, j, kernelBlue);
     }
   }
+
   this->loadTexture();
 }
 
-void Image::filterBlackWhite() {}
+void Image::filterBlackWhite() {
+  int mean;
+  for (int i = 1; i < width - 1; i++) {
+    for (int j = 1; j < height - 1; j++) {
+      mean = getRedAtPixel(i, j);
+      mean += getGreenAtPixel(i, j);
+      mean += getBlueAtPixel(i, j);
+      mean /= 3;
+      if (mean > (255 / 2)) {
+        setRedAtPixel(i, j, (char)0);
+        setGreenAtPixel(i, j, (char)0);
+        setBlueAtPixel(i, j, (char)0);
+      } else {
+        setRedAtPixel(i, j, (char)255);
+        setGreenAtPixel(i, j, (char)255);
+        setBlueAtPixel(i, j, (char)255);
+      }
+    }
+  }
 
-void Image::filterHighPass() {}
+  this->loadTexture();
+}
+
+void Image::filterHighPass() {
+  int kernelRed, kernelGreen, kernelBlue;
+  for (int i = 1; i < width - 1; i++) {
+    for (int j = 1; j < height - 1; j++) {
+      kernelRed = -1 * getRedAtPixel(i, j + 1);
+      kernelRed -= getRedAtPixel(i, j - 1);
+      kernelRed -= getRedAtPixel(i + 1, j);
+      kernelRed -= getRedAtPixel(i - 1, j);
+      kernelRed >>= 2;
+      kernelGreen = -1 * getGreenAtPixel(i, j + 1);
+      kernelGreen -= getGreenAtPixel(i, j - 1);
+      kernelGreen -= getGreenAtPixel(i + 1, j);
+      kernelGreen -= getGreenAtPixel(i - 1, j);
+      kernelGreen >>= 2;
+      kernelBlue = -1 * getBlueAtPixel(i, j + 1);
+      kernelBlue -= getBlueAtPixel(i, j - 1);
+      kernelBlue -= getBlueAtPixel(i + 1, j);
+      kernelBlue -= getBlueAtPixel(i - 1, j);
+      kernelBlue >>= 2;
+      kernelRed += 2 * ((getRedAtPixel(i, j)));
+      kernelGreen += 2 * ((getGreenAtPixel(i, j)));
+      kernelBlue += 2 * ((getBlueAtPixel(i, j)));
+      setRedAtPixel(i, j, kernelRed);
+      setGreenAtPixel(i, j, kernelGreen);
+      setBlueAtPixel(i, j, kernelBlue);
+    }
+  }
+  this->loadTexture();
+}
